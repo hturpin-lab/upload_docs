@@ -263,6 +263,58 @@ button {
     word-break: break-all;
     margin: 10px 0;
     border: 1px solid #e0e0e0;
+    white-space: pre-wrap;
+}
+
+.nextcloud-section {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+    color: white;
+}
+
+.nextcloud-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nextcloud-section p {
+    margin: 8px 0;
+    font-size: 0.9rem;
+    opacity: 0.95;
+}
+
+.link-preview {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 12px;
+    word-break: break-all;
+    margin: 12px 0;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.copy-btn {
+    background: white;
+    color: #4CAF50;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .toast {
@@ -323,6 +375,14 @@ button {
         flex-direction: column;
         gap: 5px;
     }
+    
+    .nextcloud-section {
+        padding: 12px;
+    }
+    
+    .link-preview {
+        font-size: 10px;
+    }
 }
 </style>
 </head>
@@ -377,7 +437,15 @@ button {
     <div class="button-group">
         <button class="btn-primary" id="generateZip">📦 Générer ZIP / Télécharger</button>
         <button class="btn-secondary" id="clearForm">🗑️ Réinitialiser le formulaire</button>
-        <button class="btn-secondary" id="copyLinkBtn">🔗 Copier le lien de dépôt</button>
+    </div>
+
+    <!-- Section NextCloud intégrée -->
+    <div class="nextcloud-section" id="nextcloudSection">
+        <h3>📤 Prochaine étape : Envoi sur NextCloud</h3>
+        <p>1️⃣ Téléchargez le fichier ZIP sur votre appareil</p>
+        <p>2️⃣ Utilisez le lien ci-dessous pour déposer votre travail :</p>
+        <div class="link-preview" id="linkPreview">https://nuage07.apps.education.fr/index.php/s/57w6NR7GNEmwSiq</div>
+        <button id="openNextcloudBtn" class="copy-btn">🌐 Ouvrir le lien de dépôt</button>
     </div>
 </div>
 
@@ -410,6 +478,11 @@ const travailSelect = document.getElementById('travail');
 const precisionInput = document.getElementById('precision');
 const previewSection = document.getElementById('previewSection');
 const previewName = document.getElementById('previewName');
+const openNextcloudBtn = document.getElementById('openNextcloudBtn');
+const linkPreview = document.getElementById('linkPreview');
+
+// Lien NextCloud fixe
+const NEXTCLOUD_LINK = "https://nuage07.apps.education.fr/index.php/s/57w6NR7GNEmwSiq";
 
 // Fonction pour formater la taille
 function formatSize(bytes) {
@@ -584,6 +657,21 @@ document.getElementById('clearForm').addEventListener('click', () => {
     showToast('Formulaire réinitialisé');
 });
 
+// Ouvrir le lien NextCloud
+openNextcloudBtn.addEventListener('click', () => {
+    window.open(NEXTCLOUD_LINK, '_blank');
+    showToast('🌐 Ouverture du lien de dépôt NextCloud');
+});
+
+// Copier le lien (optionnel, au survol ou clic droit)
+linkPreview.addEventListener('click', () => {
+    navigator.clipboard.writeText(NEXTCLOUD_LINK).then(() => {
+        showToast('🔗 Lien copié dans le presse-papiers !');
+    }).catch(() => {
+        showToast('❌ Impossible de copier le lien');
+    });
+});
+
 // Générer ZIP
 document.getElementById('generateZip').addEventListener('click', async () => {
     const baseName = generateBaseName();
@@ -638,6 +726,9 @@ document.getElementById('generateZip').addEventListener('click', async () => {
         URL.revokeObjectURL(url);
         
         showToast('✅ ZIP généré et téléchargé !');
+        
+        // Faire défiler jusqu'à la section NextCloud
+        document.getElementById('nextcloudSection').scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
         console.error('Erreur ZIP:', error);
         showToast('❌ Erreur lors de la génération du ZIP');
