@@ -138,6 +138,7 @@ input:focus, select:focus {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .file-item .file-size {
@@ -187,6 +188,8 @@ input:focus, select:focus {
     border-radius: 12px;
     margin: 15px 0;
     font-size: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .button-group {
@@ -237,7 +240,7 @@ button {
     background: #cc0000;
 }
 
-.nextcloud-section {
+.preview-section {
     background: #f0f7ff;
     border-radius: 12px;
     padding: 15px;
@@ -245,13 +248,13 @@ button {
     border: 1px solid #2196F3;
 }
 
-.nextcloud-section h3 {
+.preview-section h3 {
     margin: 0 0 10px 0;
     color: #2196F3;
     font-size: 1rem;
 }
 
-.link-preview {
+.preview-name {
     background: white;
     padding: 10px;
     border-radius: 8px;
@@ -259,16 +262,7 @@ button {
     font-size: 12px;
     word-break: break-all;
     margin: 10px 0;
-}
-
-.copy-btn {
-    background: #4CAF50;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
+    border: 1px solid #e0e0e0;
 }
 
 .toast {
@@ -290,6 +284,12 @@ button {
     15% { opacity: 1; transform: translateX(-50%) translateY(0); }
     85% { opacity: 1; transform: translateX(-50%) translateY(0); }
     100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+}
+
+.helper-text {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
 }
 
 @media (max-width: 600px) {
@@ -318,6 +318,11 @@ button {
     .file-item .remove-file {
         margin-left: auto;
     }
+    
+    .stats {
+        flex-direction: column;
+        gap: 5px;
+    }
 }
 </style>
 </head>
@@ -331,20 +336,17 @@ button {
     <label>👤 Nom / Prénom de l'élève :</label>
     <input type="text" id="eleve" placeholder="Ex: DUPONT_Jean" autocomplete="off">
 
-    <label>📁 Type de travail / Matière :</label>
+    <label>📚 Type de travail :</label>
     <select id="travail">
         <option value="">Sélectionnez un travail</option>
-        <option value="Projet_HTML">Projet HTML/CSS</option>
-        <option value="TP_Python">TP Python</option>
-        <option value="Rapport">Rapport</option>
-        <option value="Presentation">Présentation</option>
-        <option value="Devoir">Devoir maison</option>
-        <option value="Projet_JS">Projet JavaScript</option>
-        <option value="TP_SI">TP Sciences Ingénieur</option>
+        <option value="I2D">I2D - Innovation et Développement Durable</option>
+        <option value="IT">IT - Ingénierie et Technologie</option>
+        <option value="ETLV">ETLV - Enseignement Technologique en Langue Vivante</option>
     </select>
 
-    <label>🔗 Lien de dépôt NextCloud :</label>
-    <input type="url" id="nextcloudLink" placeholder="https://nuage07.apps.education.fr/index.php/s/57w6NR7GNEmwSiq" autocomplete="off">
+    <label>✏️ Précision (optionnel) :</label>
+    <input type="text" id="precision" placeholder="Ex: Projet, Podcast, Rapport, Dossier, Présentation..." autocomplete="off">
+    <div class="helper-text">Exemple : NOM_I2D_Projet ou NOM_ETLV_Podcast</div>
 
     <div class="drop-zone" id="dropZone">
         <i>📂</i>
@@ -367,17 +369,15 @@ button {
         <span>📦 Taille totale: <span id="totalSize">0</span></span>
     </div>
 
-    <div class="button-group">
-        <button class="btn-primary" id="generateZip">📦 Générer ZIP / Télécharger</button>
-        <button class="btn-secondary" id="copyLinkBtn">🔗 Copier le lien de dépôt</button>
+    <div class="preview-section" id="previewSection" style="display: none;">
+        <h3>📝 Aperçu du nommage des fichiers</h3>
+        <div class="preview-name" id="previewName">Sélectionnez des fichiers pour voir l'aperçu</div>
     </div>
 
-    <div class="nextcloud-section" id="nextcloudSection" style="display: none;">
-        <h3>📤 Prochaine étape : Envoi sur NextCloud</h3>
-        <p>1️⃣ Le fichier ZIP a été téléchargé sur votre appareil</p>
-        <p>2️⃣ Utilisez le lien ci-dessous pour déposer votre travail :</p>
-        <div class="link-preview" id="linkPreview"></div>
-        <button id="openNextcloudBtn" class="copy-btn">🌐 Ouvrir le lien de dépôt</button>
+    <div class="button-group">
+        <button class="btn-primary" id="generateZip">📦 Générer ZIP / Télécharger</button>
+        <button class="btn-secondary" id="clearForm">🗑️ Réinitialiser le formulaire</button>
+        <button class="btn-secondary" id="copyLinkBtn">🔗 Copier le lien de dépôt</button>
     </div>
 </div>
 
@@ -407,9 +407,9 @@ const invalidCountSpan = document.getElementById('invalidCount');
 const totalSizeSpan = document.getElementById('totalSize');
 const eleveInput = document.getElementById('eleve');
 const travailSelect = document.getElementById('travail');
-const nextcloudLinkInput = document.getElementById('nextcloudLink');
-const linkPreview = document.getElementById('linkPreview');
-const nextcloudSection = document.getElementById('nextcloudSection');
+const precisionInput = document.getElementById('precision');
+const previewSection = document.getElementById('previewSection');
+const previewName = document.getElementById('previewName');
 
 // Fonction pour formater la taille
 function formatSize(bytes) {
@@ -426,11 +426,62 @@ function isExtensionAllowed(filename) {
     return EXTENSIONS_AUTORISEES.has(ext);
 }
 
+// Générer le nom de base pour les fichiers
+function generateBaseName() {
+    let eleve = eleveInput.value.trim();
+    const travail = travailSelect.value;
+    const precision = precisionInput.value.trim();
+    
+    if (!eleve) return null;
+    if (!travail) return null;
+    
+    // Nettoyer le nom de l'élève
+    eleve = eleve.replace(/[^a-zA-Z0-9_\-]/g, '_').toUpperCase();
+    
+    let baseName = `${eleve}_${travail}`;
+    
+    // Ajouter la précision si elle est remplie
+    if (precision) {
+        const cleanPrecision = precision.replace(/[^a-zA-Z0-9_\-]/g, '_').toUpperCase();
+        baseName += `_${cleanPrecision}`;
+    }
+    
+    return baseName;
+}
+
+// Mettre à jour l'aperçu des noms de fichiers
+function updatePreview() {
+    const baseName = generateBaseName();
+    const validFiles = selectedFiles.filter(f => isExtensionAllowed(f.name));
+    
+    if (!baseName || validFiles.length === 0) {
+        previewSection.style.display = 'none';
+        return;
+    }
+    
+    previewSection.style.display = 'block';
+    
+    const previews = validFiles.slice(0, 3).map((file, index) => {
+        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        const newName = `${baseName}_${String(index+1).padStart(2,'0')}${ext}`;
+        return newName;
+    });
+    
+    let previewText = previews.join('\n');
+    if (validFiles.length > 3) {
+        previewText += `\n... et ${validFiles.length - 3} autre(s) fichier(s)`;
+    }
+    
+    previewName.textContent = previewText;
+    previewName.style.whiteSpace = 'pre-wrap';
+}
+
 // Mettre à jour l'affichage des fichiers
 function updateFileList() {
     if (selectedFiles.length === 0) {
         fileListContainer.style.display = 'none';
         statsDiv.style.display = 'none';
+        previewSection.style.display = 'none';
         return;
     }
     
@@ -466,6 +517,7 @@ function updateFileList() {
         removeBtn.onclick = () => {
             selectedFiles.splice(index, 1);
             updateFileList();
+            updatePreview();
             // Reset file input
             fileInput.value = '';
         };
@@ -474,6 +526,8 @@ function updateFileList() {
         li.appendChild(removeBtn);
         fileList.appendChild(li);
     });
+    
+    updatePreview();
 }
 
 // Afficher un toast
@@ -519,19 +573,29 @@ document.getElementById('clearAllFiles').addEventListener('click', () => {
     showToast('Tous les fichiers ont été supprimés');
 });
 
+// Réinitialiser le formulaire
+document.getElementById('clearForm').addEventListener('click', () => {
+    eleveInput.value = '';
+    travailSelect.value = '';
+    precisionInput.value = '';
+    selectedFiles = [];
+    updateFileList();
+    fileInput.value = '';
+    showToast('Formulaire réinitialisé');
+});
+
 // Générer ZIP
 document.getElementById('generateZip').addEventListener('click', async () => {
-    let eleve = document.getElementById('eleve').value.trim();
-    const travail = document.getElementById('travail').value;
-    const nextcloudLink = document.getElementById('nextcloudLink').value.trim();
+    const baseName = generateBaseName();
+    const travail = travailSelect.value;
     
-    if (!eleve) {
+    if (!eleveInput.value.trim()) {
         showToast('❌ Veuillez saisir le nom de l\'élève');
         return;
     }
     
     if (!travail) {
-        showToast('❌ Veuillez sélectionner un type de travail');
+        showToast('❌ Veuillez sélectionner un type de travail (I2D, IT ou ETLV)');
         return;
     }
     
@@ -548,18 +612,15 @@ document.getElementById('generateZip').addEventListener('click', async () => {
         }
     }
     
-    // Nettoyer le nom de l'élève
-    eleve = eleve.replace(/[^a-zA-Z0-9_\-]/g, '_').toUpperCase();
-    
     const zip = new JSZip();
-    const folderName = `${eleve}_${travail}`;
+    const folderName = baseName;
     const folder = zip.folder(folderName);
     
     // Renommer et ajouter les fichiers valides
     validFiles.forEach((file, index) => {
         const originalExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
         const ext = EXTENSIONS_AUTORISEES.has(originalExt) ? originalExt : '';
-        const newName = `${eleve}_${travail}_${String(index+1).padStart(2,'0')}${ext}`;
+        const newName = `${baseName}_${String(index+1).padStart(2,'0')}${ext}`;
         folder.file(newName, file);
     });
     
@@ -577,61 +638,23 @@ document.getElementById('generateZip').addEventListener('click', async () => {
         URL.revokeObjectURL(url);
         
         showToast('✅ ZIP généré et téléchargé !');
-        
-        // Afficher la section NextCloud si un lien est fourni
-        if (nextcloudLink) {
-            linkPreview.textContent = nextcloudLink;
-            nextcloudSection.style.display = 'block';
-        }
     } catch (error) {
         console.error('Erreur ZIP:', error);
         showToast('❌ Erreur lors de la génération du ZIP');
     }
 });
 
-// Copier le lien NextCloud
-document.getElementById('copyLinkBtn').addEventListener('click', () => {
-    const nextcloudLink = document.getElementById('nextcloudLink').value.trim();
-    if (!nextcloudLink) {
-        showToast('❌ Aucun lien de dépôt saisi');
-        return;
-    }
-    
-    navigator.clipboard.writeText(nextcloudLink).then(() => {
-        showToast('🔗 Lien copié dans le presse-papiers !');
-    }).catch(() => {
-        showToast('❌ Impossible de copier le lien');
-    });
-});
-
-// Ouvrir le lien NextCloud
-document.getElementById('openNextcloudBtn').addEventListener('click', () => {
-    const nextcloudLink = document.getElementById('nextcloudLink').value.trim();
-    if (nextcloudLink) {
-        window.open(nextcloudLink, '_blank');
-        showToast('🌐 Ouverture du lien de dépôt');
-    } else {
-        showToast('❌ Aucun lien de dépôt configuré');
-    }
-});
-
-// Mettre à jour l'aperçu du lien en temps réel
-nextcloudLinkInput.addEventListener('input', () => {
-    const link = nextcloudLinkInput.value.trim();
-    if (link) {
-        linkPreview.textContent = link;
-        nextcloudSection.style.display = 'block';
-    } else {
-        nextcloudSection.style.display = 'none';
-    }
-});
+// Mettre à jour l'aperçu quand les champs changent
+eleveInput.addEventListener('input', updatePreview);
+travailSelect.addEventListener('change', updatePreview);
+precisionInput.addEventListener('input', updatePreview);
 
 // Sauvegarde automatique dans localStorage
 function saveToLocalStorage() {
     const data = {
         eleve: eleveInput.value,
         travail: travailSelect.value,
-        nextcloudLink: nextcloudLinkInput.value
+        precision: precisionInput.value
     };
     localStorage.setItem('nextcloudUploadData', JSON.stringify(data));
 }
@@ -643,18 +666,15 @@ function loadFromLocalStorage() {
             const data = JSON.parse(saved);
             eleveInput.value = data.eleve || '';
             travailSelect.value = data.travail || '';
-            nextcloudLinkInput.value = data.nextcloudLink || '';
-            if (data.nextcloudLink) {
-                linkPreview.textContent = data.nextcloudLink;
-                nextcloudSection.style.display = 'block';
-            }
+            precisionInput.value = data.precision || '';
+            updatePreview();
         } catch(e) {}
     }
 }
 
 eleveInput.addEventListener('input', saveToLocalStorage);
 travailSelect.addEventListener('change', saveToLocalStorage);
-nextcloudLinkInput.addEventListener('input', saveToLocalStorage);
+precisionInput.addEventListener('input', saveToLocalStorage);
 
 // Initialisation
 loadFromLocalStorage();
