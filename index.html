@@ -344,6 +344,20 @@ button {
     margin-top: 5px;
 }
 
+.info-banner {
+    background: #FFF3E0;
+    border-left: 4px solid #FF9800;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 13px;
+    color: #E65100;
+}
+
+.info-banner i {
+    margin-right: 8px;
+}
+
 @media (max-width: 600px) {
     body {
         padding: 10px;
@@ -393,14 +407,18 @@ button {
     </h1>
     <div class="subtitle">Préparez et renommez vos fichiers pour le dépôt sur NextCloud</div>
 
-    <label>👤 Nom / Prénom de l'élève :</label>
-    <input type="text" id="eleve" placeholder="Ex: DUPONT_Jean" autocomplete="off">
+    <div class="info-banner">
+        <i>ℹ️</i> <strong>Info :</strong> Si vous déposez un seul fichier, il sera téléchargé directement (sans ZIP). Pour plusieurs fichiers, un dossier ZIP sera créé.
+    </div>
+
+    <label>👤 Nom de l'élève :</label>
+    <input type="text" id="eleve" placeholder="Ex: DUPONT" autocomplete="off">
 
     <label>📚 Type de travail :</label>
     <select id="travail">
         <option value="">Sélectionnez un travail</option>
         <option value="I2D">I2D - Innovation et Développement Durable</option>
-        <option value="IT">IT - Ingénierie et Technologie</option>
+        <option value="IT">IT - Innovation Technologique</option>
         <option value="ETLV">ETLV - Enseignement Technologique en Langue Vivante</option>
     </select>
 
@@ -435,14 +453,14 @@ button {
     </div>
 
     <div class="button-group">
-        <button class="btn-primary" id="generateZip">📦 Générer ZIP / Télécharger</button>
+        <button class="btn-primary" id="generateZip">📦 Générer / Télécharger</button>
         <button class="btn-secondary" id="clearForm">🗑️ Réinitialiser le formulaire</button>
     </div>
 
     <!-- Section NextCloud intégrée -->
     <div class="nextcloud-section" id="nextcloudSection">
         <h3>📤 Prochaine étape : Envoi sur NextCloud</h3>
-        <p>1️⃣ Téléchargez le fichier ZIP sur votre appareil</p>
+        <p>1️⃣ Téléchargez le fichier sur votre appareil</p>
         <p>2️⃣ Utilisez le lien ci-dessous pour déposer votre travail :</p>
         <div class="link-preview" id="linkPreview">https://nuage07.apps.education.fr/index.php/s/57w6NR7GNEmwSiq</div>
         <button id="openNextcloudBtn" class="copy-btn">🌐 Ouvrir le lien de dépôt</button>
@@ -522,6 +540,19 @@ function generateBaseName() {
     return baseName;
 }
 
+// Télécharger un fichier directement
+function downloadFile(file, newName) {
+    const blob = new Blob([file], { type: file.type });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = newName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
 // Mettre à jour l'aperçu des noms de fichiers
 function updatePreview() {
     const baseName = generateBaseName();
@@ -536,7 +567,13 @@ function updatePreview() {
     
     const previews = validFiles.slice(0, 3).map((file, index) => {
         const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-        const newName = `${baseName}_${String(index+1).padStart(2,'0')}${ext}`;
+        let newName;
+        if (validFiles.length === 1) {
+            // Pour un seul fichier, pas de numéro
+            newName = `${baseName}${ext}`;
+        } else {
+            newName = `${baseName}_${String(index+1).padStart(2,'0')}${ext}`;
+        }
         return newName;
     });
     
@@ -663,7 +700,7 @@ openNextcloudBtn.addEventListener('click', () => {
     showToast('🌐 Ouverture du lien de dépôt NextCloud');
 });
 
-// Copier le lien (optionnel, au survol ou clic droit)
+// Copier le lien
 linkPreview.addEventListener('click', () => {
     navigator.clipboard.writeText(NEXTCLOUD_LINK).then(() => {
         showToast('🔗 Lien copié dans le presse-papiers !');
@@ -672,7 +709,7 @@ linkPreview.addEventListener('click', () => {
     });
 });
 
-// Générer ZIP
+// Générer/Télécharger (avec gestion selon nombre de fichiers)
 document.getElementById('generateZip').addEventListener('click', async () => {
     const baseName = generateBaseName();
     const travail = travailSelect.value;
@@ -700,38 +737,60 @@ document.getElementById('generateZip').addEventListener('click', async () => {
         }
     }
     
-    const zip = new JSZip();
-    const folderName = baseName;
-    const folder = zip.folder(folderName);
-    
-    // Renommer et ajouter les fichiers valides
-    validFiles.forEach((file, index) => {
-        const originalExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-        const ext = EXTENSIONS_AUTORISEES.has(originalExt) ? originalExt : '';
-        const newName = `${baseName}_${String(index+1).padStart(2,'0')}${ext}`;
-        folder.file(newName, file);
-    });
-    
-    showToast('📦 Génération du ZIP en cours...');
-    
-    try {
-        const blob = await zip.generateAsync({type: "blob", compression: "DEFLATE", compressionOptions: {level: 6}});
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = `${folderName}.zip`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+    // CAS 1 : UN SEUL FICHIER - Téléchargement direct sans ZIP
+    if (validFiles.length === 1) {
+        const file = validFiles[0];
+        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        const newName = `${baseName}${ext}`;
         
-        showToast('✅ ZIP généré et téléchargé !');
+        showToast('📄 Téléchargement du fichier en cours...');
         
-        // Faire défiler jusqu'à la section NextCloud
-        document.getElementById('nextcloudSection').scrollIntoView({ behavior: 'smooth' });
-    } catch (error) {
-        console.error('Erreur ZIP:', error);
-        showToast('❌ Erreur lors de la génération du ZIP');
+        try {
+            downloadFile(file, newName);
+            showToast('✅ Fichier téléchargé !');
+            
+            // Faire défiler jusqu'à la section NextCloud
+            document.getElementById('nextcloudSection').scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+            console.error('Erreur téléchargement:', error);
+            showToast('❌ Erreur lors du téléchargement');
+        }
+    } 
+    // CAS 2 : PLUSIEURS FICHIERS - Création d'un ZIP
+    else {
+        const zip = new JSZip();
+        const folderName = baseName;
+        const folder = zip.folder(folderName);
+        
+        // Renommer et ajouter les fichiers valides
+        validFiles.forEach((file, index) => {
+            const originalExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            const ext = EXTENSIONS_AUTORISEES.has(originalExt) ? originalExt : '';
+            const newName = `${baseName}_${String(index+1).padStart(2,'0')}${ext}`;
+            folder.file(newName, file);
+        });
+        
+        showToast('📦 Génération du ZIP en cours...');
+        
+        try {
+            const blob = await zip.generateAsync({type: "blob", compression: "DEFLATE", compressionOptions: {level: 6}});
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = `${folderName}.zip`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showToast('✅ ZIP généré et téléchargé !');
+            
+            // Faire défiler jusqu'à la section NextCloud
+            document.getElementById('nextcloudSection').scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+            console.error('Erreur ZIP:', error);
+            showToast('❌ Erreur lors de la génération du ZIP');
+        }
     }
 });
 
