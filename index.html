@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>NextCloud Upload Prep - Gestionnaire de fichiers élèves</title>
+<title>NextCloud Preparation - Gestionnaire de fichiers élèves</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 * {
@@ -297,6 +297,12 @@ button {
     word-break: break-all;
     margin: 12px 0;
     border: 1px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.link-preview:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .copy-btn {
@@ -403,7 +409,7 @@ button {
 <body>
 <div class="container">
     <h1>
-        📦 NextCloud Upload Prep
+        📦 NextCloud Preparation
     </h1>
     <div class="subtitle">Préparez et renommez vos fichiers pour le dépôt sur NextCloud</div>
 
@@ -411,14 +417,14 @@ button {
         <i>ℹ️</i> <strong>Info :</strong> Si vous déposez un seul fichier, il sera téléchargé directement (sans ZIP). Pour plusieurs fichiers, un dossier ZIP sera créé.
     </div>
 
-    <label>👤 Nom de l'élève :</label>
-    <input type="text" id="eleve" placeholder="Ex: DUPONT" autocomplete="off">
+    <label>👤 Nom / Prénom de l'élève :</label>
+    <input type="text" id="eleve" placeholder="Ex: DUPONT_Jean" autocomplete="off">
 
     <label>📚 Type de travail :</label>
     <select id="travail">
         <option value="">Sélectionnez un travail</option>
         <option value="I2D">I2D - Innovation et Développement Durable</option>
-        <option value="IT">IT - Innovation Technologique</option>
+        <option value="IT">IT - Ingénierie et Technologie</option>
         <option value="ETLV">ETLV - Enseignement Technologique en Langue Vivante</option>
     </select>
 
@@ -457,12 +463,12 @@ button {
         <button class="btn-secondary" id="clearForm">🗑️ Réinitialiser le formulaire</button>
     </div>
 
-    <!-- Section NextCloud intégrée -->
-    <div class="nextcloud-section" id="nextcloudSection">
+    <!-- Section NextCloud dynamique -->
+    <div class="nextcloud-section" id="nextcloudSection" style="display: none;">
         <h3>📤 Prochaine étape : Envoi sur NextCloud</h3>
         <p>1️⃣ Téléchargez le fichier sur votre appareil</p>
         <p>2️⃣ Utilisez le lien ci-dessous pour déposer votre travail :</p>
-        <div class="link-preview" id="linkPreview">https://nuage07.apps.education.fr/index.php/s/57w6NR7GNEmwSiq</div>
+        <div class="link-preview" id="linkPreview"></div>
         <button id="openNextcloudBtn" class="copy-btn">🌐 Ouvrir le lien de dépôt</button>
     </div>
 </div>
@@ -479,6 +485,13 @@ const EXTENSIONS_AUTORISEES = new Set([
     '.py', '.js', '.html', '.css', '.php', '.java', '.cpp', '.c',
     '.tex', '.bib', '.eps', '.ps', '.dia'
 ]);
+
+// Liens NextCloud selon le type de travail
+const NEXTCLOUD_LINKS = {
+    'I2D': 'https://nuage07.apps.education.fr/index.php/s/Jn5BSyc4NyE9rsX',
+    'IT': 'https://nuage07.apps.education.fr/index.php/s/ctjTYtxWqZCj39C',
+    'ETLV': 'https://nuage07.apps.education.fr/index.php/s/57w6NR7GNEmwSiq'
+};
 
 let selectedFiles = [];
 
@@ -498,9 +511,37 @@ const previewSection = document.getElementById('previewSection');
 const previewName = document.getElementById('previewName');
 const openNextcloudBtn = document.getElementById('openNextcloudBtn');
 const linkPreview = document.getElementById('linkPreview');
+const nextcloudSection = document.getElementById('nextcloudSection');
 
-// Lien NextCloud fixe
-const NEXTCLOUD_LINK = "https://nuage07.apps.education.fr/index.php/s/57w6NR7GNEmwSiq";
+// Fonction pour obtenir le lien NextCloud selon le travail sélectionné
+function getNextcloudLink() {
+    const travail = travailSelect.value;
+    return NEXTCLOUD_LINKS[travail] || null;
+}
+
+// Mettre à jour l'affichage de la section NextCloud
+function updateNextcloudSection() {
+    const link = getNextcloudLink();
+    const travail = travailSelect.value;
+    
+    if (link && travail) {
+        linkPreview.textContent = link;
+        nextcloudSection.style.display = 'block';
+        
+        // Changer le titre selon le type de travail
+        let workTitle = '';
+        if (travail === 'I2D') workTitle = 'I2D';
+        else if (travail === 'IT') workTitle = 'IT';
+        else if (travail === 'ETLV') workTitle = 'ETLV';
+        
+        const sectionTitle = document.querySelector('#nextcloudSection h3');
+        if (sectionTitle) {
+            sectionTitle.innerHTML = `📤 Prochaine étape : Envoi sur NextCloud (${workTitle})`;
+        }
+    } else {
+        nextcloudSection.style.display = 'none';
+    }
+}
 
 // Fonction pour formater la taille
 function formatSize(bytes) {
@@ -569,7 +610,6 @@ function updatePreview() {
         const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
         let newName;
         if (validFiles.length === 1) {
-            // Pour un seul fichier, pas de numéro
             newName = `${baseName}${ext}`;
         } else {
             newName = `${baseName}_${String(index+1).padStart(2,'0')}${ext}`;
@@ -628,7 +668,6 @@ function updateFileList() {
             selectedFiles.splice(index, 1);
             updateFileList();
             updatePreview();
-            // Reset file input
             fileInput.value = '';
         };
         
@@ -691,25 +730,34 @@ document.getElementById('clearForm').addEventListener('click', () => {
     selectedFiles = [];
     updateFileList();
     fileInput.value = '';
+    updateNextcloudSection();
     showToast('Formulaire réinitialisé');
 });
 
 // Ouvrir le lien NextCloud
 openNextcloudBtn.addEventListener('click', () => {
-    window.open(NEXTCLOUD_LINK, '_blank');
-    showToast('🌐 Ouverture du lien de dépôt NextCloud');
+    const link = getNextcloudLink();
+    if (link) {
+        window.open(link, '_blank');
+        showToast('🌐 Ouverture du lien de dépôt NextCloud');
+    } else {
+        showToast('❌ Veuillez sélectionner un type de travail');
+    }
 });
 
 // Copier le lien
 linkPreview.addEventListener('click', () => {
-    navigator.clipboard.writeText(NEXTCLOUD_LINK).then(() => {
-        showToast('🔗 Lien copié dans le presse-papiers !');
-    }).catch(() => {
-        showToast('❌ Impossible de copier le lien');
-    });
+    const link = getNextcloudLink();
+    if (link) {
+        navigator.clipboard.writeText(link).then(() => {
+            showToast('🔗 Lien copié dans le presse-papiers !');
+        }).catch(() => {
+            showToast('❌ Impossible de copier le lien');
+        });
+    }
 });
 
-// Générer/Télécharger (avec gestion selon nombre de fichiers)
+// Générer/Télécharger
 document.getElementById('generateZip').addEventListener('click', async () => {
     const baseName = generateBaseName();
     const travail = travailSelect.value;
@@ -737,7 +785,7 @@ document.getElementById('generateZip').addEventListener('click', async () => {
         }
     }
     
-    // CAS 1 : UN SEUL FICHIER - Téléchargement direct sans ZIP
+    // CAS 1 : UN SEUL FICHIER
     if (validFiles.length === 1) {
         const file = validFiles[0];
         const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
@@ -748,21 +796,19 @@ document.getElementById('generateZip').addEventListener('click', async () => {
         try {
             downloadFile(file, newName);
             showToast('✅ Fichier téléchargé !');
-            
-            // Faire défiler jusqu'à la section NextCloud
-            document.getElementById('nextcloudSection').scrollIntoView({ behavior: 'smooth' });
+            updateNextcloudSection();
+            nextcloudSection.scrollIntoView({ behavior: 'smooth' });
         } catch (error) {
             console.error('Erreur téléchargement:', error);
             showToast('❌ Erreur lors du téléchargement');
         }
     } 
-    // CAS 2 : PLUSIEURS FICHIERS - Création d'un ZIP
+    // CAS 2 : PLUSIEURS FICHIERS
     else {
         const zip = new JSZip();
         const folderName = baseName;
         const folder = zip.folder(folderName);
         
-        // Renommer et ajouter les fichiers valides
         validFiles.forEach((file, index) => {
             const originalExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
             const ext = EXTENSIONS_AUTORISEES.has(originalExt) ? originalExt : '';
@@ -784,9 +830,8 @@ document.getElementById('generateZip').addEventListener('click', async () => {
             URL.revokeObjectURL(url);
             
             showToast('✅ ZIP généré et téléchargé !');
-            
-            // Faire défiler jusqu'à la section NextCloud
-            document.getElementById('nextcloudSection').scrollIntoView({ behavior: 'smooth' });
+            updateNextcloudSection();
+            nextcloudSection.scrollIntoView({ behavior: 'smooth' });
         } catch (error) {
             console.error('Erreur ZIP:', error);
             showToast('❌ Erreur lors de la génération du ZIP');
@@ -794,9 +839,12 @@ document.getElementById('generateZip').addEventListener('click', async () => {
     }
 });
 
-// Mettre à jour l'aperçu quand les champs changent
+// Mettre à jour l'aperçu et la section NextCloud quand les champs changent
 eleveInput.addEventListener('input', updatePreview);
-travailSelect.addEventListener('change', updatePreview);
+travailSelect.addEventListener('change', () => {
+    updatePreview();
+    updateNextcloudSection();
+});
 precisionInput.addEventListener('input', updatePreview);
 
 // Sauvegarde automatique dans localStorage
@@ -806,11 +854,11 @@ function saveToLocalStorage() {
         travail: travailSelect.value,
         precision: precisionInput.value
     };
-    localStorage.setItem('nextcloudUploadData', JSON.stringify(data));
+    localStorage.setItem('nextcloudPrepData', JSON.stringify(data));
 }
 
 function loadFromLocalStorage() {
-    const saved = localStorage.getItem('nextcloudUploadData');
+    const saved = localStorage.getItem('nextcloudPrepData');
     if (saved) {
         try {
             const data = JSON.parse(saved);
@@ -818,6 +866,7 @@ function loadFromLocalStorage() {
             travailSelect.value = data.travail || '';
             precisionInput.value = data.precision || '';
             updatePreview();
+            updateNextcloudSection();
         } catch(e) {}
     }
 }
