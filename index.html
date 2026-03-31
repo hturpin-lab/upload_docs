@@ -3,34 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>NextCloud Preparation - Gestionnaire de fichiers élèves</title>
+<title>NextCloud Preparation - STI2D Lycée Jean Claude Fruteau</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    max-width: 700px;
-    margin: 20px auto;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0a2f1f 0%, #1a4d2a 100%);
     padding: 20px;
     min-height: 100vh;
 }
 
+/* Bandeau officiel */
+.official-badge {
+    background: #1a4d2a;
+    color: #e8f5e9;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.7rem;
+    border-bottom: 1px solid #4caf50;
+    max-width: 900px;
+    margin: 0 auto 0px auto;
+    border-radius: 12px 12px 0 0;
+}
+
+.official-badge a {
+    color: #81c784;
+    text-decoration: none;
+}
+
+.official-badge a:hover {
+    text-decoration: underline;
+}
+
+/* Bannière développement durable */
+.sustainability-banner {
+    background: linear-gradient(90deg, #2e7d32, #4caf50, #81c784);
+    color: white;
+    padding: 6px 0;
+    text-align: center;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: 0 0 0px 0px;
+}
+
+.sustainability-banner::before {
+    content: '🌍 ♻️ 🌱 💡 🔋';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0.2;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    animation: scrollBanner 20s linear infinite;
+}
+
+@keyframes scrollBanner {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
 .container {
     background: white;
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border-radius:0 0 17px 17px;
+    padding: 28px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 h1 {
     text-align: center;
-    color: #4CAF50;
-    font-size: 1.8rem;
+    color: #2e7d32;
+    font-size: 1.6rem;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -39,11 +98,15 @@ h1 {
     flex-wrap: wrap;
 }
 
+h1 i {
+    color: #4caf50;
+}
+
 .subtitle {
     text-align: center;
-    color: #666;
+    color: #6c7a6c;
     margin-bottom: 24px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 label {
@@ -51,13 +114,14 @@ label {
     display: block;
     margin-top: 16px;
     margin-bottom: 6px;
-    color: #333;
+    color: #1a4d2a;
+    font-size: 0.85rem;
 }
 
 input, select {
     width: 100%;
     padding: 12px 15px;
-    font-size: 16px;
+    font-size: 14px;
     border: 2px solid #e0e0e0;
     border-radius: 12px;
     transition: all 0.3s ease;
@@ -67,17 +131,17 @@ input, select {
 
 input:focus, select:focus {
     outline: none;
-    border-color: #4CAF50;
+    border-color: #4caf50;
     box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
 .drop-zone {
-    border: 3px dashed #4CAF50;
+    border: 3px dashed #4caf50;
     padding: 40px 20px;
     text-align: center;
     cursor: pointer;
     border-radius: 16px;
-    background: #f9f9f9;
+    background: #f8fdf8;
     margin: 20px 0;
     transition: all 0.3s ease;
 }
@@ -90,24 +154,24 @@ input:focus, select:focus {
 
 .drop-zone i {
     font-size: 48px;
-    color: #4CAF50;
+    color: #4caf50;
     margin-bottom: 10px;
     display: block;
 }
 
 .drop-zone p {
     margin: 8px 0;
-    color: #666;
+    color: #4a5b4a;
 }
 
 .drop-zone small {
-    color: #999;
-    font-size: 0.8rem;
+    color: #8aa08a;
+    font-size: 0.75rem;
 }
 
 .file-list-container {
-    background: #f5f5f5;
-    border-radius: 12px;
+    background: #f0f5f0;
+    border-radius: 16px;
     padding: 15px;
     margin: 15px 0;
     max-height: 300px;
@@ -122,14 +186,14 @@ input:focus, select:focus {
 
 .file-item {
     padding: 12px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #d0e0d0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 14px;
+    font-size: 13px;
     background: white;
     margin: 5px 0;
-    border-radius: 8px;
+    border-radius: 10px;
     word-break: break-all;
 }
 
@@ -142,31 +206,31 @@ input:focus, select:focus {
 }
 
 .file-item .file-size {
-    color: #999;
-    font-size: 12px;
+    color: #8aa08a;
+    font-size: 11px;
     margin-left: 10px;
 }
 
 .file-item .remove-file {
-    background: #ff4444;
+    background: #dc3545;
     color: white;
     border: none;
     border-radius: 20px;
     padding: 5px 12px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
     transition: background 0.3s;
 }
 
 .file-item .remove-file:hover {
-    background: #cc0000;
+    background: #c82333;
 }
 
 .badge {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
 }
 
@@ -183,13 +247,14 @@ input:focus, select:focus {
 .stats {
     display: flex;
     justify-content: space-between;
-    padding: 10px;
-    background: #e3f2fd;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
     border-radius: 12px;
     margin: 15px 0;
-    font-size: 14px;
+    font-size: 12px;
     flex-wrap: wrap;
     gap: 10px;
+    color: #1a4d2a;
 }
 
 .button-group {
@@ -202,7 +267,7 @@ input:focus, select:focus {
 button {
     flex: 1;
     padding: 14px 20px;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     border: none;
     border-radius: 12px;
@@ -212,71 +277,75 @@ button {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
     color: white;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
 }
 
 .btn-secondary {
-    background: #2196F3;
+    background: #1a4d2a;
     color: white;
 }
 
 .btn-secondary:hover {
+    background: #0a2f1f;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
 }
 
 .btn-danger {
-    background: #ff4444;
+    background: #dc3545;
     color: white;
 }
 
 .btn-danger:hover {
-    background: #cc0000;
+    background: #c82333;
 }
 
 .preview-section {
-    background: #f0f7ff;
-    border-radius: 12px;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border-radius: 16px;
     padding: 15px;
     margin-top: 20px;
-    border: 1px solid #2196F3;
+    border: 1px solid #4caf50;
 }
 
 .preview-section h3 {
     margin: 0 0 10px 0;
-    color: #2196F3;
-    font-size: 1rem;
+    color: #2e7d32;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .preview-name {
     background: white;
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 10px;
     font-family: monospace;
-    font-size: 12px;
+    font-size: 11px;
     word-break: break-all;
     margin: 10px 0;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #c8e6c9;
     white-space: pre-wrap;
+    color: #1a4d2a;
 }
 
 .nextcloud-section {
-    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-    border-radius: 12px;
-    padding: 15px;
+    background: linear-gradient(135deg, #2e7d32 0%, #1a4d2a 100%);
+    border-radius: 16px;
+    padding: 18px;
     margin-top: 20px;
     color: white;
 }
 
 .nextcloud-section h3 {
     margin: 0 0 10px 0;
-    font-size: 1rem;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -284,35 +353,35 @@ button {
 
 .nextcloud-section p {
     margin: 8px 0;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     opacity: 0.95;
 }
 
 .link-preview {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 10px;
     font-family: monospace;
-    font-size: 12px;
+    font-size: 11px;
     word-break: break-all;
     margin: 12px 0;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .link-preview:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .copy-btn {
     background: white;
-    color: #4CAF50;
+    color: #2e7d32;
     border: none;
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 30px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     width: 100%;
     transition: all 0.3s ease;
@@ -320,7 +389,7 @@ button {
 
 .copy-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .toast {
@@ -328,11 +397,11 @@ button {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: #333;
+    background: #1a4d2a;
     color: white;
     padding: 12px 24px;
     border-radius: 30px;
-    font-size: 14px;
+    font-size: 13px;
     z-index: 1000;
     animation: fadeInOut 2s ease;
 }
@@ -345,37 +414,38 @@ button {
 }
 
 .helper-text {
-    font-size: 12px;
-    color: #999;
+    font-size: 11px;
+    color: #8aa08a;
     margin-top: 5px;
 }
 
 .info-banner {
-    background: #FFF3E0;
-    border-left: 4px solid #FF9800;
-    padding: 10px 15px;
-    border-radius: 8px;
+    background: #e8f5e9;
+    border-left: 4px solid #ff9800;
+    padding: 12px 15px;
+    border-radius: 12px;
     margin: 15px 0;
-    font-size: 13px;
-    color: #E65100;
+    font-size: 12px;
+    color: #e65100;
 }
 
 .info-banner i {
     margin-right: 8px;
+    color: #ff9800;
 }
 
-@media (max-width: 600px) {
+/* Responsive */
+@media (max-width: 700px) {
     body {
         padding: 10px;
-        margin: 10px;
     }
     
     .container {
-        padding: 16px;
+        padding: 18px;
     }
     
     h1 {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
     }
     
     .button-group {
@@ -396,82 +466,94 @@ button {
         gap: 5px;
     }
     
-    .nextcloud-section {
-        padding: 12px;
+    .official-badge {
+        font-size: 0.6rem;
     }
     
-    .link-preview {
-        font-size: 10px;
+    .sustainability-banner {
+        font-size: 0.6rem;
     }
 }
 </style>
 </head>
 <body>
-<div class="container">
-    <h1>
-        📦 NextCloud Preparation
-    </h1>
-    <div class="subtitle">Préparez et renommez vos fichiers pour le dépôt sur NextCloud</div>
-
-    <div class="info-banner">
-        <i>ℹ️</i> <strong>Info :</strong> Si vous déposez un seul fichier, il sera téléchargé directement (sans ZIP). Pour plusieurs fichiers, un dossier ZIP sera créé.
+    <!-- Bandeau officiel -->
+    <div class="official-badge">
+        <i class="fas fa-school"></i> Lycée Jean Claude Fruteau - Académie de La Réunion | STI2D
+        | <i class="fas fa-globe"></i> <a href="https://www.ac-reunion.fr" target="_blank" rel="noopener noreferrer">ac-reunion.fr</a>
+    </div>
+    
+    <div class="sustainability-banner">
+        🌱 Innovation Durable | Économie Circulaire | Énergies Renouvelables | Mobilité Verte | Eco-conception ♻️
     </div>
 
-    <label>👤 Nom / Prénom de l'élève :</label>
-    <input type="text" id="eleve" placeholder="Ex: DUPONT_Jean" autocomplete="off">
+    <div class="container">
+        <h1>
+            <i class="fas fa-leaf"></i>
+            NextCloud Preparation
+            <i class="fas fa-cloud-upload-alt"></i>
+        </h1>
+        <div class="subtitle">Préparez et renommez vos fichiers pour le dépôt sur NextCloud</div>
 
-    <label>📚 Type de travail :</label>
-    <select id="travail">
-        <option value="">Sélectionnez un travail</option>
-        <option value="I2D">I2D - Innovation et Développement Durable</option>
-        <option value="IT">IT - Ingénierie et Technologie</option>
-        <option value="ETLV">ETLV - Enseignement Technologique en Langue Vivante</option>
-    </select>
-
-    <label>✏️ Précision (optionnel) :</label>
-    <input type="text" id="precision" placeholder="Ex: Projet, Podcast, Rapport, Dossier, Présentation..." autocomplete="off">
-    <div class="helper-text">Exemple : NOM_I2D_Projet ou NOM_ETLV_Podcast</div>
-
-    <div class="drop-zone" id="dropZone">
-        <i>📂</i>
-        <p>📱 Glissez vos fichiers ici ou cliquez pour sélectionner</p>
-        <small>Formats acceptés : PDF, DOC, PPT, JPG, PNG, ZIP, MP4, etc.</small>
-        <input type="file" id="files" multiple style="display:none;">
-    </div>
-
-    <div class="file-list-container" id="fileListContainer" style="display: none;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <strong>📄 Fichiers sélectionnés</strong>
-            <button id="clearAllFiles" class="btn-danger" style="padding: 4px 12px; font-size: 12px;">Tout vider</button>
+        <div class="info-banner">
+            <i class="fas fa-info-circle"></i> <strong>Info :</strong> Si vous déposez un seul fichier, il sera téléchargé directement (sans ZIP). Pour plusieurs fichiers, un dossier ZIP sera créé.
         </div>
-        <ul class="file-list" id="fileList"></ul>
-    </div>
 
-    <div class="stats" id="stats" style="display: none;">
-        <span>📊 Fichiers valides: <span id="validCount">0</span></span>
-        <span>⚠️ Fichiers refusés: <span id="invalidCount">0</span></span>
-        <span>📦 Taille totale: <span id="totalSize">0</span></span>
-    </div>
+        <label><i class="fas fa-user-graduate"></i> 👤 Nom / Prénom de l'élève :</label>
+        <input type="text" id="eleve" placeholder="Ex: DUPONT_Jean" autocomplete="off">
 
-    <div class="preview-section" id="previewSection" style="display: none;">
-        <h3>📝 Aperçu du nommage des fichiers</h3>
-        <div class="preview-name" id="previewName">Sélectionnez des fichiers pour voir l'aperçu</div>
-    </div>
+        <label><i class="fas fa-briefcase"></i> 📚 Type de travail :</label>
+        <select id="travail">
+            <option value="">Sélectionnez un travail</option>
+            <option value="I2D">I2D - Innovation et Développement Durable</option>
+            <option value="IT">IT - Ingénierie et Technologie</option>
+            <option value="ETLV">ETLV - Enseignement Technologique en Langue Vivante</option>
+        </select>
 
-    <div class="button-group">
-        <button class="btn-primary" id="generateZip">📦 Générer / Télécharger</button>
-        <button class="btn-secondary" id="clearForm">🗑️ Réinitialiser le formulaire</button>
-    </div>
+        <label><i class="fas fa-pen-fancy"></i> ✏️ Précision (optionnel) :</label>
+        <input type="text" id="precision" placeholder="Ex: Projet, Podcast, Rapport, Dossier, Présentation..." autocomplete="off">
+        <div class="helper-text"><i class="fas fa-lightbulb"></i> Exemple : NOM_I2D_Projet ou NOM_ETLV_Podcast</div>
 
-    <!-- Section NextCloud dynamique -->
-    <div class="nextcloud-section" id="nextcloudSection" style="display: none;">
-        <h3>📤 Prochaine étape : Envoi sur NextCloud</h3>
-        <p>1️⃣ Téléchargez le fichier sur votre appareil</p>
-        <p>2️⃣ Utilisez le lien ci-dessous pour déposer votre travail :</p>
-        <div class="link-preview" id="linkPreview"></div>
-        <button id="openNextcloudBtn" class="copy-btn">🌐 Ouvrir le lien de dépôt</button>
+        <div class="drop-zone" id="dropZone">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>📱 Glissez vos fichiers ici ou cliquez pour sélectionner</p>
+            <small>Formats acceptés : PDF, DOC, PPT, JPG, PNG, ZIP, MP4, etc.</small>
+            <input type="file" id="files" multiple style="display:none;">
+        </div>
+
+        <div class="file-list-container" id="fileListContainer" style="display: none;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <strong><i class="fas fa-file-alt"></i> 📄 Fichiers sélectionnés</strong>
+                <button id="clearAllFiles" class="btn-danger" style="padding: 4px 12px; font-size: 11px;">🗑️ Tout vider</button>
+            </div>
+            <ul class="file-list" id="fileList"></ul>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <span><i class="fas fa-check-circle"></i> 📊 Fichiers valides: <span id="validCount">0</span></span>
+            <span><i class="fas fa-times-circle"></i> ⚠️ Fichiers refusés: <span id="invalidCount">0</span></span>
+            <span><i class="fas fa-database"></i> 📦 Taille totale: <span id="totalSize">0</span></span>
+        </div>
+
+        <div class="preview-section" id="previewSection" style="display: none;">
+            <h3><i class="fas fa-eye"></i> 📝 Aperçu du nommage des fichiers</h3>
+            <div class="preview-name" id="previewName">Sélectionnez des fichiers pour voir l'aperçu</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" id="generateZip"><i class="fas fa-download"></i> 📦 Générer / Télécharger</button>
+            <button class="btn-secondary" id="clearForm"><i class="fas fa-undo-alt"></i> 🗑️ Réinitialiser le formulaire</button>
+        </div>
+
+        <!-- Section NextCloud dynamique -->
+        <div class="nextcloud-section" id="nextcloudSection" style="display: none;">
+            <h3><i class="fas fa-cloud-upload-alt"></i> 📤 Prochaine étape : Envoi sur NextCloud</h3>
+            <p>1️⃣ Téléchargez le fichier sur votre appareil</p>
+            <p>2️⃣ Utilisez le lien ci-dessous pour déposer votre travail :</p>
+            <div class="link-preview" id="linkPreview"></div>
+            <button id="openNextcloudBtn" class="copy-btn"><i class="fas fa-external-link-alt"></i> 🌐 Ouvrir le lien de dépôt</button>
+        </div>
     </div>
-</div>
 
 <script>
 // Configuration des extensions autorisées
@@ -481,7 +563,7 @@ const EXTENSIONS_AUTORISEES = new Set([
     '.ppt', '.pptx', '.odp', '.key',
     '.xls', '.xlsx', '.ods', '.csv',
     '.zip', '.rar', '.7z', '.tar', '.gz',
-    '.mp3', '.mp4', '.avi', '.mov', '.wav', '.flac', '.mkv','.m4a'
+    '.mp3', '.mp4', '.avi', '.mov', '.wav', '.flac', '.mkv', '.m4a',
     '.py', '.js', '.html', '.css', '.php', '.java', '.cpp', '.c',
     '.tex', '.bib', '.eps', '.ps', '.dia'
 ]);
@@ -528,7 +610,6 @@ function updateNextcloudSection() {
         linkPreview.textContent = link;
         nextcloudSection.style.display = 'block';
         
-        // Changer le titre selon le type de travail
         let workTitle = '';
         if (travail === 'I2D') workTitle = 'I2D';
         else if (travail === 'IT') workTitle = 'IT';
@@ -536,7 +617,7 @@ function updateNextcloudSection() {
         
         const sectionTitle = document.querySelector('#nextcloudSection h3');
         if (sectionTitle) {
-            sectionTitle.innerHTML = `📤 Prochaine étape : Envoi sur NextCloud (${workTitle})`;
+            sectionTitle.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> 📤 Prochaine étape : Envoi sur NextCloud (${workTitle})`;
         }
     } else {
         nextcloudSection.style.display = 'none';
@@ -567,12 +648,10 @@ function generateBaseName() {
     if (!eleve) return null;
     if (!travail) return null;
     
-    // Nettoyer le nom de l'élève
     eleve = eleve.replace(/[^a-zA-Z0-9_\-]/g, '_').toUpperCase();
     
     let baseName = `${eleve}_${travail}`;
     
-    // Ajouter la précision si elle est remplie
     if (precision) {
         const cleanPrecision = precision.replace(/[^a-zA-Z0-9_\-]/g, '_').toUpperCase();
         baseName += `_${cleanPrecision}`;
@@ -683,7 +762,7 @@ function updateFileList() {
 function showToast(message, duration = 2000) {
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.textContent = message;
+    toast.innerHTML = `<i class="fas fa-leaf"></i> ${message}`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), duration);
 }
@@ -879,7 +958,7 @@ precisionInput.addEventListener('input', saveToLocalStorage);
 loadFromLocalStorage();
 
 // Message de bienvenue
-showToast('📱 Interface prête - Glissez vos fichiers !', 3000);
+showToast('🌱 Interface STI2D prête - Glissez vos fichiers !', 3000);
 </script>
 </body>
 </html>
